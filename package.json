@@ -1,7 +1,7 @@
 {
   "name": "vue-futurelink",
   "description": "Preload links about to be clicked with futurelink.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "Callum Macrae <callum@samknows.com>",
   "main": "dist/futurelink.min.js",
   "scripts": {
