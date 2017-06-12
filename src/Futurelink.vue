@@ -38,6 +38,8 @@
 
         loaded.push(href);
 
+        this.$emit('preload', href);
+
         const resolved = this.$router.resolve(href);
         const matched = resolved.resolved.matched;
         this.preloadComponent = matched[matched.length - 1].components.default;

@@ -6,7 +6,8 @@
   "main": "dist/futurelink.min.js",
   "scripts": {
     "dev": "cross-env NODE_ENV=development webpack-dev-server --open --hot",
-    "build": "cross-env NODE_ENV=production webpack --progress --hide-modules"
+    "build": "cross-env NODE_ENV=production webpack --progress --hide-modules",
+    "prepublish": "npm run build"
   },
   "dependencies": {
     "futurelink": "^0.2.1",

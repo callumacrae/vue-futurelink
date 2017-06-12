@@ -4,7 +4,7 @@
 
 ## Installation
 
-```js
+```
 $ npm install --save-dev vue-futurelink
 ```
 
@@ -23,6 +23,29 @@ I put it below the footer, but in theory it should work anywhere on the page.
   import Futurelink from 'vue-futurelink';
 
   export {
+    components: {
+      Futurelink
+    }
+  };
+</script>
+```
+
+When a page is preloaded, a `preload` event is fired:
+
+```html
+<template>
+  <futurelink v-on:preload="handlePreload"></futurelink>
+</template>
+
+<script>
+  import Futurelink from 'vue-futurelink';
+
+  export {
+    methods: {
+      handlePreload(path) {
+        console.info(`Preloading ${path}`);
+      },
+    },
     components: {
       Futurelink
     }
