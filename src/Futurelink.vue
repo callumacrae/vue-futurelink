@@ -1,6 +1,6 @@
 <template>
-  <div class="preload no-preload" aria-hidden="true">
-    <div class="preload-inner">
+  <div class="futurelink no-futurelink" style="height: 0; max-height: 0; overflow: hidden" aria-hidden="true">
+    <div style="height: 100vh; overflow: auto;">
       <component v-if="preloadComponent" :is="preloadComponent"></component>
     </div>
   </div>
@@ -59,15 +59,3 @@
     },
   };
 </script>
-
-<style scoped>
-  /* display: none messes up our home page */
-  .preload {
-    height: 0;
-    overflow: hidden;
-  }
-  .preload-inner {
-    height: 100vh;
-    overflow: auto;
-  }
-</style>
