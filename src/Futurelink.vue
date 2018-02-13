@@ -32,6 +32,10 @@
       this.options.future = (link) => {
         const href = link.getAttribute('href');
 
+        if (this.$router.options.base) {
+            href = href.replace(this.$router.options.base, '/')
+        }
+
         if (loaded.includes(href)) {
           return;
         }
