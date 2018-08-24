@@ -10,7 +10,7 @@
     "prepublish": "npm run build"
   },
   "dependencies": {
-    "futurelink": "^0.2.1",
+    "futurelink": "^1.0.0",
     "vue": "^2.3.3"
   },
   "devDependencies": {

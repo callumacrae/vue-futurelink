@@ -12,6 +12,7 @@
   export default {
     data: () => ({
       preloadComponent: undefined,
+      instance: undefined,
       options: {
         links: [],
       },
@@ -45,10 +46,15 @@
         this.preloadComponent = matched[matched.length - 1].components.default;
       };
 
-      futurelink(this.options);
+      this.instance = futurelink(this.options);
 
       this.init();
       this.$router.afterEach(() => this.init());
+    },
+    destroyed() {
+      if (this.instance) {
+        this.instance.teardown();
+      }
     },
     methods: {
       init() {
