@@ -43,11 +43,18 @@
 
         loaded.push(href);
 
-        this.$emit('preload', href);
-
         const resolved = this.$router.resolve(href);
         const matched = resolved.resolved.matched;
-        this.preloadComponent = matched[matched.length - 1].components.default;
+        const route = matched[matched.length - 1];
+        // Only preload if a route was found.
+        if (route) {
+          // If the route has a preload meta property, check whether the route should be preloaded.
+          if ((typeof route.meta.preload === 'function' && route.meta.preload(href, route) === false) || route.meta.preload !== false) {
+            return
+          }
+          this.$emit('preload', href, route);
+          this.preloadComponent = route.components.default;
+        }
       };
 
       this.instance = futurelink(this.options);
