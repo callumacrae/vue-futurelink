@@ -56,7 +56,7 @@ When a page is preloaded, a `preload` event is fired:
 ## Source vs. Dist
 
 By default, the `main` entry points to the compiled and minified version
-of the Vue template. This is typically fine. However, in certain cases,
+of the Vue component. This is typically fine. However, in certain cases,
 perhaps using a PR or forked version of this package, you may need to
 import the source Vue component directly from the package. To do this,
 just append the import with the path to the Vue component: 
