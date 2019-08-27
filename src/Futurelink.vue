@@ -49,7 +49,7 @@
         // Only preload if a route was found.
         if (route) {
           // If the route has a preload meta property, check whether the route should be preloaded.
-          if ((typeof route.meta.preload === 'function' && route.meta.preload(href, route) === false) || route.meta.preload !== false) {
+          if ((typeof route.meta.preload === 'function' && route.meta.preload(href, route) === false) || route.meta.preload === false) {
             return;
           }
           this.$emit('preload', href, route);
