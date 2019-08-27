@@ -50,7 +50,7 @@
         if (route) {
           // If the route has a preload meta property, check whether the route should be preloaded.
           if ((typeof route.meta.preload === 'function' && route.meta.preload(href, route) === false) || route.meta.preload !== false) {
-            return
+            return;
           }
           this.$emit('preload', href, route);
           this.preloadComponent = route.components.default;
