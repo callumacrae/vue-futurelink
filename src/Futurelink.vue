@@ -10,64 +10,23 @@
   import futurelink from 'futurelink';
 
   export default {
-    data: () => ({
-      preloadComponent: undefined,
-      instance: undefined,
-      options: {
-        links: [],
-      },
-    }),
-    mounted() {
-      // Don't run on the server
-      if (typeof window === 'undefined') {
-        return;
+    beforeCreate() {
+      // Ensure vue-router is actually being used (not just dependend on).
+      if (!this.$router || !this.$route) {
+        throw new Error('vue-futurelink requires vue-router to function.');
       }
-
-      // Don't run on mobile
-      if ('ontouchstart' in window) {
-        return;
+    },
+    data() {
+      return {
+        basePath: this.$router.options.base ? this.$router.options.base : '/',
+        preloaded: new Set(),
+        preloadComponent: undefined,
+        instance: undefined,
+        options: {
+          future: this.preloadLink,
+          links: [],
+        },
       }
-
-      const loaded = [this.$route.path];
-
-      this.options.future = (link) => {
-        let href = link.getAttribute('href');
-
-        if (this.$router.options.base) {
-            href = href.replace(this.$router.options.base, '/')
-        }
-
-        if (loaded.includes(href)) {
-          return;
-        }
-
-        loaded.push(href);
-
-        const resolved = this.$router.resolve(href);
-        const matched = resolved.resolved.matched;
-        const route = matched[matched.length - 1];
-        // Only preload if a route was found.
-        if (route) {
-          // If route doesn't specify a preload meta property, supply one.
-          // Wrap non-function values so it's always a function.
-          if (typeof route.meta.preload !== 'function') {
-            route.meta.preload = ((value) => () => value)(route.meta.preload !== false);
-          }
-          // Resolve the preload check using a Promise, just in case.
-          return Promise.resolve(route.meta.preload(href, route))
-            .then((preload) => {
-              if (preload !== false) {
-                this.$emit('preload', href, route);
-                this.preloadComponent = route.components.default;
-              }
-            });
-        }
-      };
-
-      this.instance = futurelink(this.options);
-
-      this.init();
-      this.$router.afterEach(() => this.init());
     },
     destroyed() {
       if (this.instance) {
@@ -75,11 +34,70 @@
       }
     },
     methods: {
-      init() {
-        this.$nextTick(() => {
-          this.options.links = Array.from(document.querySelectorAll('a[href^="/"'));
+      preloadLink(link) {
+        const href = link.getAttribute('href').replace(this.basePath, '/');
+
+        // Immediately return if this route has already been preloaded.
+        if (this.preloaded.has(href)) {
+          return;
+        }
+
+        // Route hasn't been preloaded, indicate that is has
+        this.preloaded.add(href);
+
+        const resolved = this.$router.resolve(href);
+        const matched = resolved.resolved.matched;
+        const route = matched[matched.length - 1];
+        if (!route) {
+          return;
+        }
+
+        // Create a promise to check if the route should be preloaded.
+        const shouldPreload = () => new Promise((resolve) => {
+          if (typeof route.meta.preload === 'function') {
+            try {
+              return resolve(route.meta.preload.call(this, href, route));
+            }
+                // Silence any errors; preloading is meant to be passive.
+            catch (e) {
+              return resolve(e);
+            }
+          }
+          resolve(route.meta.preload);
         });
-      },
+
+        return shouldPreload()
+            .then((result) => {
+              // Do nothing if the result is an Error or explicitly set as false.
+              if (result instanceof Error || result === false) {
+                return;
+              }
+              this.$emit('preload', href, route);
+              this.preloadComponent = route.components.default;
+            })
+            // Silence any rejections; preloading is meant to be passive.
+            .catch(() => {});
+      }
     },
+    mounted() {
+      // Only run in the browser, but not on mobile (no cursor).
+      if (typeof window === 'undefined' || 'ontouchstart' in window) {
+        return;
+      }
+      this.instance = futurelink(this.options);
+    },
+    watch: {
+      // Ensure that anytime a route changes, their paths are recorded as
+      // "preloaded" since this means the router is/has handled loading them.
+      // This is to ensure route redirections work properly. Also, update the
+      // links found on the page.
+      '$route'(to, from) {
+        this.preloaded.add(from.path);
+        this.preloaded.add(to.path);
+        this.$nextTick(() => {
+          this.options.links = Array.from(document.querySelectorAll(`a[href^="${this.basePath}"`));
+        });
+      }
+    }
   };
 </script>
