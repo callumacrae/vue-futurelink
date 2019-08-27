@@ -48,12 +48,19 @@
         const route = matched[matched.length - 1];
         // Only preload if a route was found.
         if (route) {
-          // If the route has a preload meta property, check whether the route should be preloaded.
-          if ((typeof route.meta.preload === 'function' && route.meta.preload(href, route) === false) || route.meta.preload === false) {
-            return;
+          // If route doesn't specify a preload meta property, supply one.
+          // Wrap non-function values so it's always a function.
+          if (typeof route.meta.preload !== 'function') {
+            route.meta.preload = ((value) => () => value)(route.meta.preload !== false);
           }
-          this.$emit('preload', href, route);
-          this.preloadComponent = route.components.default;
+          // Resolve the preload check using a Promise, just in case.
+          return Promise.resolve(route.meta.preload(href, route))
+            .then((preload) => {
+              if (preload !== false) {
+                this.$emit('preload', href, route);
+                this.preloadComponent = route.components.default;
+              }
+            });
         }
       };
 
