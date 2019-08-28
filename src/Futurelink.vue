@@ -16,6 +16,11 @@
         throw new Error('vue-futurelink requires vue-router to function.');
       }
     },
+    beforeDestroy() {
+      if (this.instance) {
+        this.instance.teardown();
+      }
+    },
     data() {
       return {
         basePath: this.$router.options.base ? this.$router.options.base : '/',
@@ -26,11 +31,6 @@
           future: this.preloadLink,
           links: [],
         },
-      }
-    },
-    beforeDestroy() {
-      if (this.instance) {
-        this.instance.teardown();
       }
     },
     methods: {
