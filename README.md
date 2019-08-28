@@ -42,8 +42,8 @@ When a page is preloaded, a `preload` event is fired:
 
   export {
     methods: {
-      handlePreload(path) {
-        console.info(`Preloading ${path}`);
+      handlePreload(path, route) {
+          console.info(`Preloading ${path}`, route);
       },
     },
     components: {
@@ -93,7 +93,7 @@ associated with just mounting a vue component.
 You can also supply the `preload` meta property with a callback
 function. This callback is passed two parameters:
 
-- `href` - (string) The link href value (stripped of any router base path).
+- `path` - (string) The link href value (stripped of any router base path).
 - `route` - (Route) The matched route object.
 
 To prevent the route from being preloaded, the return value of the
@@ -109,7 +109,7 @@ feature.
   path: '/process-intensive-route',
   // ...
   meta: {
-    preload: (href, route) => startFetchingOtherResources(route),
+    preload: (path, route) => startFetchingOtherResources(route),
   },
 },
 ```
