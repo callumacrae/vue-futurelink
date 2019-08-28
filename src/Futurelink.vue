@@ -28,7 +28,7 @@
         },
       }
     },
-    destroyed() {
+    beforeDestroy() {
       if (this.instance) {
         this.instance.teardown();
       }
