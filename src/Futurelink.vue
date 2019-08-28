@@ -34,49 +34,62 @@
       }
     },
     methods: {
+      logError(error) {
+        // Do not show if there is no error, console or configured to be silent.
+        if (!error || !('console' in window) || !('error' in window.console) || this.$options._base.config.silent) {
+          return;
+        }
+        window.console.error(error);
+      },
+      async shouldPreload(path, route) {
+        // Immediately return if preload meta isn't a function.
+        if (typeof route.meta.preload !== 'function') {
+          return route.meta.preload;
+        }
+        // Return any caught error; preloading is meant to be passive and it
+        // needs to be logged for potential debugging purposes.
+        try {
+          return route.meta.preload.call(this, path, route);
+        }
+        catch (error) {
+          return error;
+        }
+      },
       preloadLink(link) {
-        const href = link.getAttribute('href').replace(this.basePath, '/');
+        const path = link.getAttribute('href').replace(this.basePath, '/');
 
-        // Immediately return if this route has already been preloaded.
-        if (this.preloaded.has(href)) {
+        // Immediately return if this path has already been preloaded.
+        if (this.preloaded.has(path)) {
           return;
         }
 
-        // Route hasn't been preloaded, indicate that is has
-        this.preloaded.add(href);
+        // Path hasn't been handled, indicate that it now has been.
+        this.preloaded.add(path);
 
-        const resolved = this.$router.resolve(href);
+        const resolved = this.$router.resolve(path);
         const matched = resolved.resolved.matched;
         const route = matched[matched.length - 1];
         if (!route) {
           return;
         }
 
-        // Create a promise to check if the route should be preloaded.
-        const shouldPreload = () => new Promise((resolve) => {
-          if (typeof route.meta.preload === 'function') {
-            try {
-              return resolve(route.meta.preload.call(this, href, route));
-            }
-                // Silence any errors; preloading is meant to be passive.
-            catch (e) {
-              return resolve(e);
-            }
-          }
-          resolve(route.meta.preload);
-        });
-
-        return shouldPreload()
+        // Check whether the path/route should be preloaded.
+        return this.shouldPreload(path, route)
             .then((result) => {
-              // Do nothing if the result is an Error or explicitly set as false.
-              if (result instanceof Error || result === false) {
+              // If result is an error, throw it so that it's caught below.
+              if (result instanceof Error) {
+                throw result;
+              }
+              // Do not preload if the result is explicitly set as false.
+              if (result === false) {
                 return;
               }
-              this.$emit('preload', href, route);
+              this.$emit('preload', path, route);
               this.preloadComponent = route.components.default;
             })
-            // Silence any rejections; preloading is meant to be passive.
-            .catch(() => {});
+            // Catch any rejections and log them so it doesn't bubble up;
+            // preloading is meant to be passive.
+            .catch((error) => this.logError(error));
       }
     },
     mounted() {
