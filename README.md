@@ -100,9 +100,10 @@ To prevent the route from being preloaded, the return value of the
 callback must explicitly return `false`. Optionally, a `Promise` may
 be returned that can ultimately be resolved to a boolean.
 
-Any errors or rejections encountered during the callback will be
-intentionally silenced as preloading is meant to be a passive
-feature.
+Any errors or rejections encountered during the callback are intentionally
+caught as preloading is meant to be a passive and non-blocking feature.
+These errors will only be logged to the console if the
+[Vue.config.silent](https://vuejs.org/v2/api/#silent) option is disabled.
 
 ```js
 {
