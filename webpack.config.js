@@ -1,7 +1,9 @@
-var path = require('path');
-var webpack = require('webpack');
+const path = require('path');
+const TerserPlugin = require('terser-webpack-plugin');
+const { VueLoaderPlugin } = require('vue-loader');
 
 module.exports = {
+  mode: process.env.NODE_ENV !== 'production' ? 'development': 'production',
   entry: './src/Futurelink.vue',
   output: {
     path: path.resolve(__dirname, './dist'),
@@ -25,11 +27,15 @@ module.exports = {
   },
   devtool: '#source-map',
   plugins: [
-    new webpack.optimize.UglifyJsPlugin({
-      sourceMap: true,
-      compress: {
-        warnings: false
-      }
-    })
-  ]
+    new VueLoaderPlugin()
+  ],
+  optimization: {
+    minimizer: [
+      new TerserPlugin({
+        cache: true,
+        parallel: true,
+        sourceMap: true,
+      }),
+    ],
+  }
 };

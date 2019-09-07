@@ -11,7 +11,7 @@
 
   export default {
     beforeCreate() {
-      // Ensure vue-router is actually being used (not just dependend on).
+      // Ensure vue-router is actually being used (not just depended on).
       if (!this.$router || !this.$route) {
         throw new Error('vue-futurelink requires vue-router to function.');
       }
@@ -23,7 +23,7 @@
     },
     data() {
       return {
-        basePath: this.$router.options.base ? this.$router.options.base : '/',
+        basePath: this.$router && this.$router.options && this.$router.options.base ? this.$router.options.base : '/',
         preloaded: new Set(),
         preloadComponent: undefined,
         instance: undefined,
@@ -41,19 +41,21 @@
         }
         window.console.error(error);
       },
-      async shouldPreload(path, route) {
-        // Immediately return if preload meta isn't a function.
-        if (typeof route.meta.preload !== 'function') {
-          return route.meta.preload;
-        }
-        // Return any caught error; preloading is meant to be passive and it
-        // needs to be logged for potential debugging purposes.
-        try {
-          return route.meta.preload.call(this, path, route);
-        }
-        catch (error) {
-          return error;
-        }
+      shouldPreload(path, route) {
+        return new Promise((resolve) => {
+          // Immediately return if preload meta isn't a function.
+          if (typeof route.meta.preload !== 'function') {
+            return resolve(route.meta.preload);
+          }
+          // Return any caught error; preloading is meant to be passive and it
+          // needs to be logged for potential debugging purposes.
+          try {
+            return resolve(route.meta.preload.call(this, path, route));
+          }
+          catch (error) {
+            resolve(error);
+          }
+        });
       },
       preloadLink(link) {
         const path = link.getAttribute('href').replace(this.basePath, '/');
@@ -93,8 +95,8 @@
       }
     },
     mounted() {
-      // Only run in the browser, but not on mobile (no cursor).
-      if (typeof window === 'undefined' || 'ontouchstart' in window) {
+      // Only run when vue-router is used and in the browser, but not on mobile (no cursor).
+      if (!this.$router || !this.$route || typeof window === 'undefined' || 'ontouchstart' in window) {
         return;
       }
       this.instance = futurelink(this.options);
@@ -102,7 +104,7 @@
     watch: {
       // Ensure that anytime a route changes, their paths are recorded as
       // "preloaded" since this means the router is/has handled loading them.
-      // This is to ensure route redirections work properly. Also, update the
+      // This is to ensure route redirection works properly. Also, update the
       // links found on the page.
       '$route'(to, from) {
         this.preloaded.add(from.path);
