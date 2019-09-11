@@ -1,76 +1,95 @@
-import {shallowMount} from '@vue/test-utils'
-import Futurelink from '@/Futurelink';
+import futurelink from 'futurelink';
+import Vue from 'vue';
+import {after, before, describe, it} from "mocha";
+
 import {
-  createComponent,
-  createLink,
+  createAnchorLink,
   createRoute,
-  createWrapper
+  createWrapper,
+  silentVue,
 } from '../helpers';
 
-describe('Futurelink.vue', () => {
+const _global = (() => globalThis || (window !== undefined && window) || (global !== undefined && global) || (self !== undefined && self) || {})();
+const _consoleError = _global.console.error;
+_global.caughtErrors = [];
 
-  test('throws when not using vue-router', () => {
-    expect(() => {
-      const error = console.error;
-      console.error = () => {
-      };
-      try {
-        shallowMount(Futurelink)
-      }
-      catch (e) {
-        console.error = error;
-        throw e;
-      }
-    }).toThrowError('vue-futurelink requires vue-router to function.');
+describe('Futurelink.vue', () => {
+  before(function () {
+    _global.console.error = (...args) => {
+      _global.caughtErrors.push([...args]);
+    }
+  });
+  after(function () {
+    _global.console.error = _consoleError;
   });
 
-  test('is a Vue instance', () => {
+  it('log error if vue-router is not used', () => {
+    expect(() => createWrapper(false)).toLogError('[vue-futurelink] Vue.use(VueRouter) must be invoked prior to using vue-futurelink!');
+  });
+
+  it('does not log error if vue-router is not used and Vue.config.silent', () => {
+    expect(() => silentVue(() => createWrapper(false))).not.toLogError('[vue-futurelink] Vue.use(VueRouter) must be invoked prior to using vue-futurelink!');
+  });
+
+  it('is a Vue instance', () => {
     const wrapper = createWrapper();
     expect(wrapper.isVueInstance()).toBeTruthy();
+    expect(wrapper.vm).toBeInstanceOf(Vue);
+    expect(wrapper.vm.$refs.futurelink).toBeInstanceOf(Vue);
   });
 
-  test('preloadLink matches route, preloads component and emits event', () => {
-    const Foo = createComponent('foo');
-    const foo = createRoute('/foo', Foo);
-    const wrapper = createWrapper({routes: [foo]});
+  it('creates and destroys futurelink instance', () => {
+    const wrapper = createWrapper();
+    expect(typeof wrapper.vm.$refs.futurelink.futurelink).toBe('function');
+
+    const ctor = futurelink({links: []}).constructor;
+    expect(wrapper.vm.$refs.futurelink.futurelink).toBeInstanceOf(ctor);
+
+    wrapper.vm.$refs.futurelink.$destroy();
+    expect(wrapper.vm.$refs.futurelink.futurelink).toBeUndefined();
+  });
+
+  it('preloadLink matches route, preloads component and emits event', () => {
     const routePath = '/foo';
-    const link = createLink(routePath);
-    let handlerPath;
-    let handlerRoute;
-    wrapper.vm.$on('preload', (path, route) => {
-      handlerPath = path;
-      handlerRoute = route;
-    });
-    return wrapper.vm.preloadLink(link)
+    const link = createAnchorLink(routePath);
+    const foo = createRoute(routePath, () => import('../fixtures/components/Foo.vue'));
+    const wrapper = createWrapper({routes: [foo]});
+    return wrapper.vm.$refs.futurelink.preloadLink(link)
       .then(() => {
-        const event = wrapper.emitted('preload');
-        const [path, route] = event.pop();
-        expect(path).toEqual(routePath);
-        expect(route.path).toEqual(routePath);
-        expect(handlerPath).toEqual(routePath);
-        expect(handlerRoute.path).toEqual(routePath);
-        expect(wrapper.vm.preloadComponent).toEqual(Foo)
+        const expected = [
+          'preload:before',
+          'preload',
+          'preload:mounted',
+          'preload:after',
+        ];
+        expect(wrapper).toEmit(expected, (eventName, path, route, component) => {
+          expect(path).toEqual(routePath);
+          expect(route.path).toEqual(routePath);
+          if (eventName === 'preload:mounted') {
+            expect(component).not.toBeUndefined();
+          }
+          else {
+            expect(component).toBeUndefined();
+          }
+        });
       })
   });
 
-  test('preloadLink does not preload component or emit event', () => {
-    const Foo = createComponent('foo');
-    const foo = createRoute('/foo', Foo, false);
-    const wrapper = createWrapper({routes: [foo]});
+  it('preloadLink does not preload component or emit event', () => {
     const routePath = '/foo';
-    const link = createLink(routePath);
-    let handlerPath;
-    let handlerRoute;
-    wrapper.vm.$on('preload', (path, route) => {
-      handlerPath = path;
-      handlerRoute = route;
+    const link = createAnchorLink(routePath);
+    const foo = createRoute(routePath, () => import('../fixtures/components/Foo.vue'), false);
+    const wrapper = createWrapper({routes: [foo]});
+    let capturedPath;
+    let capturedRoute;
+    wrapper.vm.$refs.futurelink.$on('preload', (path, route) => {
+      capturedPath = path;
+      capturedRoute = route;
     });
-    return wrapper.vm.preloadLink(link)
+    return wrapper.vm.$refs.futurelink.preloadLink(link)
       .then(() => {
-        expect(wrapper.emitted('preload')).toBeUndefined();
-        expect(handlerPath).toBeUndefined();
-        expect(handlerRoute).toBeUndefined();
-        expect(wrapper.vm.preloadComponent).toBeUndefined();
+        expect(capturedPath).toBeUndefined();
+        expect(capturedRoute).toBeUndefined();
       })
   });
 

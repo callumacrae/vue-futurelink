@@ -1,5 +1,8 @@
 .DS_Store
 dist/
+
+### Coverage
+.nyc_output/
 coverage/
 
 ### Node template

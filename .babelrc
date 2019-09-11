@@ -1,12 +1,10 @@
 {
   "presets": [
-    ["@babel/preset-env", { "modules": false }]
+    ["@babel/preset-env", { "modules": "commonjs" }]
   ],
   "env": {
     "test": {
-      "presets": [
-        ["@babel/preset-env", { "modules": "commonjs" }]
-      ]
+      "plugins": ["istanbul"]
     }
   }
 }
