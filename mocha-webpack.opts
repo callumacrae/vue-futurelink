@@ -1,0 +1,5 @@
+--webpack-config webpack.config.js
+--require @babel/register
+--require jsdom-global/register
+--require ./tests/setup.js
+tests/**/*.spec.js

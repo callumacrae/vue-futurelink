@@ -1,0 +1,23 @@
+{
+  "check-coverage": true,
+  "per-file": true,
+  "lines": 90,
+  "statements": 90,
+  "functions": 90,
+  "branches": 90,
+  "sourceMap": false,
+  "instrument": false,
+  "include": [
+    "src/**/*.{js,vue}"
+  ],
+  "reporter": [
+    "lcov",
+    "text"
+  ],
+  "extension": [
+    ".js",
+    ".vue"
+  ],
+  "cache": true,
+  "all": true
+}
