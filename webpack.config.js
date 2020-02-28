@@ -1,5 +1,6 @@
 var path = require('path');
 var webpack = require('webpack');
+const { VueLoaderPlugin } = require('vue-loader')
 
 module.exports = {
   entry: './src/Futurelink.vue',
@@ -10,6 +11,7 @@ module.exports = {
     library: 'futurelink',
     libraryTarget: 'umd',
   },
+  mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
   module: {
     rules: [
       {
@@ -24,12 +26,10 @@ module.exports = {
     ]
   },
   devtool: '#source-map',
+  optimization: {
+    minimize: 'production'.includes(process.env.NODE_ENV)
+  },
   plugins: [
-    new webpack.optimize.UglifyJsPlugin({
-      sourceMap: true,
-      compress: {
-        warnings: false
-      }
-    })
+    new VueLoaderPlugin()
   ]
 };

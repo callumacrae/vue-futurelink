@@ -14,14 +14,15 @@
     "vue": "^2.3.3"
   },
   "devDependencies": {
-    "babel-core": "^6.0.0",
-    "babel-loader": "^6.0.0",
+    "@babel/core": "^7.8.6",
+    "babel-loader": "^8.0.6",
     "babel-preset-env": "^1.5.1",
     "cross-env": "^3.0.0",
     "css-loader": "^0.25.0",
-    "vue-loader": "^12.1.0",
+    "vue-loader": "^15.7.0",
     "vue-template-compiler": "^2.3.3",
-    "webpack": "^2.6.1",
-    "webpack-dev-server": "^2.4.5"
+    "webpack": "^4.41.6",
+    "webpack-cli": "^3.3.11",
+    "webpack-dev-server": "^3.1.11"
   }
 }
